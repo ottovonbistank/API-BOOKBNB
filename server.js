@@ -74,6 +74,11 @@ app.post("/api/listings", upload.single("image"), async (req, res) => {
   try {
     const { title, location, price, description, contact } = req.body;
 
+    // Construct absolute URL for the image
+    const imageUrl = req.file 
+      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+      : "";
+
     const newListing = new Listing({
       title,
       location,
@@ -81,7 +86,7 @@ app.post("/api/listings", upload.single("image"), async (req, res) => {
       description,
       contact,
       booked: false,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : "",
+      imageUrl: imageUrl,
     });
 
     await newListing.save();
@@ -97,7 +102,10 @@ app.put("/api/listings/:id", upload.single("image"), async (req, res) => {
   try {
     const { title, location, price, description, contact } = req.body;
     let updateData = { title, location, price, description, contact };
-    if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
+    
+    if (req.file) {
+      updateData.imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    }
 
     const updated = await Listing.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
